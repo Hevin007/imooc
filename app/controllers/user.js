@@ -23,7 +23,7 @@ exports.signup = function(req,res) {
 			console.log(err)
 		}
 		if (user) {
-			return res.redirect('/')
+			return res.redirect('/signin')
 		}
 		else {
 			var user = new User(_user)
@@ -32,7 +32,7 @@ exports.signup = function(req,res) {
 					console.log(err)
 				}
 
-				res.redirect('/admin/userlist')
+				res.redirect('/')
 			})
 			
 		}
@@ -43,19 +43,6 @@ exports.signup = function(req,res) {
 	form post 传递 req.body.userid      */
 }
 
-//userlist page
-exports.list = function(req,res){
-	User.fetch(function(err,users) {
-		if (err) {
-			console.log(err)
-		}
-		res.render('userlist',{
-			title:'imooc 用户列表页',
-			users: users
-		});
-		
-	})
-}
 
 //signin 
 exports.signin = function(req,res) {
@@ -68,7 +55,7 @@ exports.signin = function(req,res) {
 			console.log(err)
 		}
 		if(!user) {
-			return res.redirect('/')
+			return res.redirect('/signup')
 		}
 		user.comparePassword(password,function (err ,isMatch) {
 			if(err) {
@@ -80,7 +67,7 @@ exports.signin = function(req,res) {
 				return res.redirect('/')
 			}
 			else {
-				console.log('Password is not matched')
+				return res.redirect('/signin')
 			}
 		})
 	})
@@ -91,4 +78,39 @@ exports.signout = function(req,res) {
 	delete req.session.user
 	//delete app.locals.user
 	res.redirect('/')
+}
+
+
+//userlist page
+exports.list = function(req,res) {
+	User.fetch(function(err,users) {
+		if (err) {
+			console.log(err)
+		}
+		res.render('userlist',{
+			title:'imooc 用户列表页',
+			users: users
+		});
+		
+	})
+}
+
+
+//midware for user
+exports.signinRequired = function(req,res,next) {
+	var user = req.session.user
+
+	if (!user) {
+		return res.redirect('/signin')
+	}
+    next()
+}
+
+exports.adminRequired = function(req,res,next) {
+	var user = req.session.user
+
+	if (user.role <= 10) {
+		return res.redirect('/signin')
+	}
+    next()
 }
